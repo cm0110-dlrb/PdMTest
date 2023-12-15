@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="eng">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Predictive Maintenance</title>
+        <link rel="stylesheet" href="design.css">
+       
+        
+    </head>
+    <body>
+        <div class="home">
+            <h1>Predictive Maintenance for Aircon</h1>
+
+            <!--<input type="file" id="fileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+            <button type="button" id="upload" >Upload your Temperature Data</button>-->
+               
+           <!--- <form id="uploadForm" action="" method="post" enctype="multipart/form-data">
+                <label for="file">Upload Your Temperature File</label>
+                <input type="file" id="fileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                <button class="text-white bg-blue-500 px-4 py-2 rounded-md my-4">Submit</button>
+            </form> --->
+
+            <form id="uploadForm">
+                <input type="file" id="fileInput" accept=".csv" required>
+                <button type="submit">Upload</button>
+            </form>
+
+
+            <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+            <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js"></script>
+            <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-storage.js"></script>
+            <script src="script.js"></script>
+
+         
+
+        <div class="container">
+            <h1>Air Conditioner Status</h1>
+            <div class="aircon-status" id="aircon-status">
+                <p>Health: <span class="health"></span></p>
+                <p>Operating Window: <span class="window"></span></p>
+                <p>Issue: <span class="issue"></span></p>
+                
+                <p>Average Health Score: <span class="averageHealthScore"></span></p>
+<p>Average Temperature: <span class="averageTemperature"></span></p>
+            </div>
+        </div>
+
+        <div class="container2">
+        
+        </div>
+        <div class="graph-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+    </div>
+
+    <!------------------Firebase--------------------------->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyBmKHJCPEyjNZnBaWVDd3ojqd11y-sZ3CM",
+          authDomain: "pdmac-22506.firebaseapp.com",
+          projectId: "pdmac-22506",
+          storageBucket: "pdmac-22506.appspot.com",
+          messagingSenderId: "446546128486",
+          appId: "1:446546128486:web:125994c234f628f697c7a7",
+          measurementId: "G-S3DKEVPP9T"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+      </script>
+    <!-------------------Firebase End---------------------->
+
+
+    <!-------File input--------------------------------------------->    
+   <script>
+    document.getElementById('uploadForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+    
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+    
+        if (!file) {
+            alert('Please select a file to upload.');
+            return;
+        }
+    
+        const storageRef = firebase.storage().ref();
+        const fileRef = storageRef.child(file.name);
+      
+        fileRef.put(file).then((snapshot) => {
+            console.log('Uploaded', snapshot.totalBytes, 'bytes.');
+            console.log('File URL:', snapshot.ref.getDownloadURL());
+        }).catch((error) => {
+            console.error('Error:', error);
+        });
+    });
+
+     fileRef.put(file).then((snapshot) => {
+            return snapshot.ref.getDownloadURL();
+        }).then((url) => {
+            const db = firebase.firestore();
+            const docRef = db.collection('CSV').doc();
+
+            return docRef.set({
+                name: file.name,
+                size: file.size,
+                url: url
+            });
+        }).then(() => {
+            console.log('File uploaded and metadata stored.');
+        }).catch((error) => {
+            console.error('Error:', error);
+        });
+   </script>
+   <script>
+    fileRef.put(file).then((snapshot) => {
+        return snapshot.ref.getDownloadURL();
+    }).then((url) => {
+        const db = firebase.firestore();
+        const docRef = db.collection('CSV').doc();
+
+        return docRef.set({
+            name: file.name,
+            size: file.size,
+            url: url
+        });
+    }).then(() => {
+        console.log('File uploaded and metadata stored.');
+    }).catch((error) => {
+        console.error('Error:', error);
+    });
+   </script>
+       
+   <script>
+
+   </script>
+   <!---File Input end---------------------------------------------->
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'],
+                datasets: [{
+                    label: 'Temperature Trend',
+                    data: [20, 22, 23, 24, 25, 26, 27],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>        
+
+        
+       
+      
+        
+        <script>
+            // Replace the values with your data from the machine learning model
+            document.querySelector('.health').textContent = 'Good'; // Replace 'Good' with your health data
+            document.querySelector('.window').textContent = '24/08/2021 - 24/09/2021'; // Replace the window with your window data
+            document.querySelector('.issue').textContent = 'None'; // Replace 'None' with your issue data
+        </script>
+
+
+       
+
+
+         <!-- <script>
+            // Firebase Storage Reference
+            const storageRef = firebase.storage().ref();
+
+            // Input Field Selector
+            const inputField = document.querySelector('#csvFile');
+
+            // Function to upload the CSV file to Firebase Storage
+            const uploadFile = (file) => {
+                storageRef.child('csv/' + file.name).put(file).then((snapshot) => {
+                    console.log('Uploaded');
+                    // Function to download the uploaded file from Firebase Storage
+                    downloadFile(snapshot.ref);
+                });
+            };
+
+            // Function to download the uploaded file from Firebase Storage
+            const downloadFile = (fileRef) => {
+                fileRef.getDownloadURL().then((url) => {
+                    console.log('File Url: ' + url);
+                    // Function to retrieve the file data
+                    getFileData(url);
+                });
+            };
+
+            // Function to retrieve the file data
+            const getFileData = (url) => {
+                fetch(url)
+                    .then((response) => response.text())
+                    .then((data) => {
+                        console.log('File Data:');
+                        console.log(data);
+                        // Function to preprocess the data
+                        preprocessData(data);
+                    });
+            };
+
+            // Function to preprocess the data
+            const preprocessData = (data) => {
+                // Your code to preprocess the data
+
+                
+            };
+
+            // Function to apply the predictive maintenance model
+            const applyModel = (data) => {
+                // Your code to apply the predictive maintenance model
+            };
+
+            // Function to postprocess the data
+            const postprocessData = (data) => {
+                // Your code to postprocess the data
+            };
+
+            // Function to visualize the data
+            const visualizeData = (data) => {
+                // Your code to visualize the data
+            };
+
+            // Event Listener for CSV file upload
+            inputField.addEventListener('change', (event) => {
+                uploadFile(event.target.files[0]);
+            });
+
+            // Event Listener for button click to apply the predictive maintenance model
+            document.querySelector('#applyModel').addEventListener('click', () => {
+                applyModel();
+            });
+        </script>
+    -->
+
+
+
+
+        <!---------------------------------------------->
+
+        <script>
+            // Function to update the aircon status
+            const updateAirconStatus = (health, window, issue) => {
+                document.querySelector('.health').textContent = health;
+                document.querySelector('.window').textContent = window;
+                document.querySelector('.issue').textContent = issue;
+            };
+
+            // Your code to fetch the aircon status data
+            const fetchAirconStatusData = () => {
+                // Your code to fetch the aircon status data from your model
+                // Replace the values with your actual data
+                updateAirconStatus('Good', '24/08/2021 - 24/09/2021', 'None');
+            };
+
+            // Your code to fetch the temperature trend data
+            const fetchTemperatureTrendData = () => {
+                // Your code to fetch the temperature trend data from your model
+                // Replace the values with your actual data
+                return {
+                    labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+                    datasets: [
+                        {
+                            label: 'Temperature',
+                            data: [24, 24, 25, 25, 26, 26, 25, 25, 24, 24],
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        },
+                    ],
+                };
+            };
+
+            // Function to visualize the temperature trend data
+            const visualizeTemperatureTrendData = (data) => {
+                const ctx = document.getElementById('temperatureTrendChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: data,
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                            },
+                        },
+                    },
+                });
+            };
+
+            // Event Listener for button click to fetch and visualize the aircon status data and temperature trend data
+            document.querySelector('#fetchData').addEventListener('click', () => {
+                fetchAirconStatusData();
+                visualizeTemperatureTrendData(fetchTemperatureTrendData());
+            });
+        </script>
+
+
+
+        <!-----------------Graph----------------------->
+        <script>
+            const postprocessData = (data) => {
+                // Filter out the rows that don't have a health score above a certain threshold
+                const filteredData = data.filter((row) => row.healthScore > 0.5);
+            
+                // Calculate the average health score and the average temperature
+                const averageHealthScore = filteredData.reduce((sum, row) => sum + row.healthScore, 0) / filteredData.length;
+                const averageTemperature = filteredData.reduce((sum, row) => sum + row.temperature, 0) / filteredData.length;
+            
+                return {
+                    filteredData,
+                    averageHealthScore,
+                    averageTemperature,
+                };
+            };
+        </script>
+
+        <!--------------------------------------Visualize-->
+        <script>
+            const visualizeData = (data) => {
+            // Display the average health score and the average temperature
+            document.querySelector('.averageHealthScore').textContent = data.averageHealthScore.toFixed(2);
+            document.querySelector('.averageTemperature').textContent = data.averageTemperature.toFixed(2);
+        
+            // Your code to create a chart using a library like Chart.js or Google Charts
+        };
+    </script>
+       <script src="jvs.js"></script>  
+    </body>
+</html>
